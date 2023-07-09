@@ -1,2 +1,1 @@
-from .session import ChatGPTSession
-from .response import GPTResponse
+from promptkit.chatgpt.session import ChatSession
