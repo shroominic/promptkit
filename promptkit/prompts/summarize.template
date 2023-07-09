@@ -1,0 +1,9 @@
+Summarize the following text: 
+{text}
+
+Reply with a codeblock and format it like this:
+```
+SUMMARY_START
+...
+SUMMARY_END
+```
