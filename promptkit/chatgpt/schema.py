@@ -11,10 +11,7 @@ class BaseMessage(BaseModel):
     
     def __repr__(self):
         return f"{self.role}: {self.content}"
-    
-    def __dict__(self):
-        return {"role": self.role, "content": self.content}
-    
+
 
 class UserMessage(BaseMessage):
     """ User message """
