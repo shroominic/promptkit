@@ -3,7 +3,7 @@ from promptkit.chatgpt import ChatSession
 from promptkit.utils import retry_if_false, from_template
 
 
-# @retry_if_false(retries=3, except_text="Failed to summarize text")
+@retry_if_false(retries=3, except_text="Failed to summarize text")
 async def summarize(text: str) -> str | None:
     """ 
     Summarize text using the openai api 
