@@ -1,1 +1,1 @@
-from .summarize import summarize
+from promptkit.tools.summarize import summarize
