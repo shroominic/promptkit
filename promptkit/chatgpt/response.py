@@ -1,25 +1,22 @@
 import re
-from pydantic import BaseModel
-from typing import Dict
-from typing import TYPE_CHECKING
+import pydantic
+
+from promptkit.chatgpt.schema import AssistantMessage
+from promptkit.chatgpt.session import ChatSession
 
 
-if TYPE_CHECKING:
-    from promptkit.chatgpt import ChatGPTSession as Session
-
-
-class GPTResponse(BaseModel):
-    """ Represents a response from the chatgpt api """
-    session: Session
-    response: Dict
-
-    @property
-    def message(self) -> str:
-        return self.response["choices"][0]["message"]
-
-    @property
-    def content(self) -> str:
-        return self.message["content"].strip()
+class AssistantResponse(AssistantMessage):
+    """ 
+    Represents a response or message from the chatgpt api 
+    """
+    session: ChatSession
+    response: dict
+    
+    def __init__(self, session: ChatSession, response: dict) -> None:
+        super().__init__(role="assistant", 
+                         content=response["choices"][0]["message"]["content"].strip(),
+                         session=session,  # type: ignore
+                         response=response)  # type: ignore
 
     @property
     def model(self) -> str:
@@ -33,22 +30,24 @@ class GPTResponse(BaseModel):
     def finish_reason(self) -> str:
         return str(self.response["choices"][0]["finish_reason"])
 
-    def get_codeblock(self) -> str:
-        return re.search(
+    def get_codeblock(self) -> str | None:
+        return code.group(2) if (
+            code := re.search(
             r"```(\w+)(.*?)```",
-            self.content, re.DOTALL
-        ).group(2)
+            self.content, re.DOTALL)
+        ) else None
 
     def get_bool(self) -> bool:
-        """ Extract boolean from response """
+        """ Yes/No response to boolean """
         return self.content.lower().startswith("y")
 
-    def regenerate(self):
-        """ Regenerate the response """
+    async def regenerate(self):
+        """ Regenerate the response based on the session history """
         if not self.session.history:
             raise ValueError("Cannot regenerate first response")
-        self.response = self.session.generate(history=self.session.history[:-1])
-        self.session.history[-1] = self.response.message
+        self = await self.session.generate(history=self.session.history[:-1])
+        self.session.history.pop()
+        self.session.history.append(self)
         return self
 
     def __repr__(self) -> str:
